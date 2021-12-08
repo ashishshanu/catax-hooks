@@ -1,10 +1,7 @@
 import datetime
 import json
-
 import psycopg2
 from flask import Flask, request, make_response
-from pymongo import MongoClient
-
 from databaseconnection import DatabaseConnection, mongodb_connection
 
 app = Flask(__name__)

@@ -25,7 +25,6 @@ class DatabaseConnection:
             print('Error while connecting to PostgreSQL', error)
 
 
-
 def mongodb_connection(key, section_mongodb):
     connection_string = "mongodb://grey:greywolf@101.53.132.174:5435/catax?authSource=catax&readPreference=primary" \
                         "&appname=MongoDB%20Compass&directConnection=true&ssl=false "
