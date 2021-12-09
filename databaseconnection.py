@@ -33,4 +33,5 @@ def mongodb_connection(key, section_mongodb):
 
     collection = db.get_collection(Configuration.get(section_mongodb, 'collection_name'))
     cursor = collection.find_one({"apiKey": key})
+
     return cursor
