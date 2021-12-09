@@ -12,41 +12,46 @@ def internal_authentication():
     key = request.headers.get('api-key')
     header = dict(request.headers)
     token = request.headers.get('Token')
+    secretkey = request.headers.get('secret')
     cursor = mongodb_connection(key, "mongodb")
 
     if cursor is not None and cursor["apiKey"] == key:
         if cursor["expiry"] > datetime.datetime.now():
             if cursor["apiToken"] == token:
-                userid = cursor["userId"]
-                accountid = cursor["accountId"]
-                processed = '1'
-                json_body = dict(request.json)
+                if cursor["apiSecret"] == secretkey:
+                    userid = cursor["userId"]
+                    accountid = cursor["accountId"]
+                    processed = '1'
+                    json_body = dict(request.json)
 
-                try:
-                    connection = DatabaseConnection.get_connection('database')
-                    cursor_postgres = connection.cursor()
-                    cursor_postgres.execute(
-                        "insert into transaction_push (user_id, exchange_id, transaction_json, createdon, headers, isprocessed) values (" + "'" + str(
-                            userid) + "','" + str(accountid) + "','" + json.dumps(json_body) + "','" + str(
-                            datetime.datetime.now()) +
-                        "','" + json.dumps(header) + "','" + processed + "') ON CONFLICT DO NOTHING")
-                    connection.commit()
+                    try:
+                        connection = DatabaseConnection.get_connection('database')
+                        cursor_postgres = connection.cursor()
+                        cursor_postgres.execute(
+                            "insert into transaction_push (user_id, exchange_id, transaction_json, createdon, headers, "
+                            "isprocessed) values (" + "'" + str(
+                                userid) + "','" + str(accountid) + "','" + json.dumps(json_body) + "','" + str(
+                                datetime.datetime.now()) +
+                            "','" + json.dumps(header) + "','" + processed + "') ON CONFLICT DO NOTHING")
+                        connection.commit()
 
-                    if connection:
-                        connection.close()
+                        if connection:
+                            connection.close()
 
-                    return make_response('Transaction stored \n' + "userID: " + str(userid), 201,
-                                         {"response": "Success"})
-                except psycopg2.Error as db_err:
-                    print('Exception occurred {}', db_err.__str__())
-                    return make_response('Error inserting data (Postgres): ', 500, {'response': 'Invalid token!'})
-                except ConnectionError as err:
-                    print('Exception occurred {}', err.__str__())
-                    return make_response('Error connecting Postgres:', 500, {'response': 'Invalid token!'})
+                        return make_response('Transaction stored \n' + "userID: " + str(userid), 201,
+                                             {"response": "Success"})
+                    except psycopg2.Error as db_err:
+                        print('Exception occurred {}', db_err.__str__())
+                        return make_response('Error inserting data (Postgres): ', 500, {'response': 'Invalid token!'})
+                    except ConnectionError as err:
+                        print('Exception occurred {}', err.__str__())
+                        return make_response('Error connecting Postgres:', 500, {'response': 'Invalid token!'})
+                else:
+                    return make_response('secret_key invalid or Not provided', 401, {'response': 'invalid'})
             else:
-                return make_response('Token expired', 401, {'response': 'Token expired'})
+                return make_response('Token expired or not provided', 401, {'response': 'Token expired'})
         else:
-            return make_response('key expired', 401, {'response': 'key expired'})
+            return make_response('Api key expired', 401, {'response': 'key expired'})
 
     return make_response('Unauthorized User', 401, {'response': 'Unauthorized'})
 
