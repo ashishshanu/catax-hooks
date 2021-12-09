@@ -27,14 +27,16 @@ def internal_authentication():
                     cursor_postgres = connection.cursor()
                     cursor_postgres.execute(
                         "insert into transaction_push (user_id, exchange_id, transaction_json, createdon, headers, isprocessed) values (" + "'" + str(
-                        userid) + "','" + str(accountid) + "','" + json.dumps(json_body) + "','" + str(datetime.datetime.now()) +
-                        "','"+json.dumps(header)+"','"+processed+"') ON CONFLICT DO NOTHING")
+                            userid) + "','" + str(accountid) + "','" + json.dumps(json_body) + "','" + str(
+                            datetime.datetime.now()) +
+                        "','" + json.dumps(header) + "','" + processed + "') ON CONFLICT DO NOTHING")
                     connection.commit()
 
                     if connection:
                         connection.close()
 
-                    return make_response('Transaction stored' + str(header), 201, {"response": "Success"})
+                    return make_response('Transaction stored \n' + "userID: " + str(userid), 201,
+                                         {"response": "Success"})
                 except psycopg2.Error as db_err:
                     print('Exception occurred {}', db_err.__str__())
                     return make_response('Error inserting data (Postgres): ', 500, {'response': 'Invalid token!'})
